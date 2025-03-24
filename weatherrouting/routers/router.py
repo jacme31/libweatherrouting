@@ -174,9 +174,11 @@ class Router:
 
         def pointF(p, tws, twa, dt, brg):
             speed = self.polar.getSpeed(tws, math.copysign(twa, 1))
+            # Jacme: for routagePointDistance defaut distance unit is nm 
+            #  speed*dt is nm  (don't convert in km) 
             rpd = (
                 utils.routagePointDistance(
-                    p[0], p[1], speed * dt * utils.NAUTICAL_MILE_IN_KM, brg
+                    p[0], p[1], speed * dt , brg
                 ),
                 speed,
             )
@@ -245,12 +247,16 @@ class Router:
 
             try:
                 (twd, tws) = self.grib.getWindAt(t, p.pos[0], p.pos[1])
+                
             except Exception as e:
                 raise RoutingNoWindException() from e
-
+            
+            # Jacme : convert only once twd from degrees to radians 
+            twd = math.radians(twd)
+            # Jacme : convert ms-1 to knots (nm per hour)  !
+            tws=utils.MS2KT*tws 
             for twa in range(-180, 180, 5):
                 twa = math.radians(twa)
-                twd = math.radians(twd)
                 brg = utils.reduce360(twd + twa)
 
                 # Calculate next point
@@ -326,10 +332,13 @@ class Router:
                 (twd, tws) = self.grib.getWindAt(t, p.pos[0], p.pos[1])
             except Exception as e:
                 raise RoutingNoWindException() from e
-
+             
+            # Jacme : convert only once twd from degrees to radians 
+            twd = math.radians(twd)
+            # Jacme : convert ms-1 to knots (nm per hour)  !
+            tws=utils.MS2KT*tws 
             for twa in range(-180, 180, 5):
                 twa = math.radians(twa)
-                twd = math.radians(twd)
                 brg = utils.reduce360(twd + twa)
 
                 # Calculate next point
